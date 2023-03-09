@@ -7,14 +7,10 @@ Visualization only:
 """
 
 import argparse
+
 import pandas as pd
-from soan.whatsapp import helper
-from soan.whatsapp import general
-from soan.whatsapp import tf_idf
-from soan.whatsapp import emoji
-from soan.whatsapp import topic
-from soan.whatsapp import sentiment
-from soan.whatsapp import wordcloud
+
+from soan.whatsapp import emoji, general, helper, sentiment, tf_idf, topic, wordcloud
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -24,6 +20,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument('--language', help='The language of the texts', required=True)
     parser.add_argument('--hist_mask', help='Path of histogram mask', required=False, default="images/mask.png")
     parser.add_argument('--cloud_mask', help='Path of cloud mask', required=False, default="images/heart.jpg")
+
     args = parser.parse_args()
 
     return args
@@ -35,10 +32,11 @@ def main():
     # Load data
     df = helper.import_data(f'data/{args.file}')
     df = helper.preprocess_data(df)
-    user_labels = {old: new for old, new in zip(sorted(df.User.unique()), ['Her', 'Me'])}
-    df.User = df.User.map(user_labels)
+    # user_labels = {old: new for old, new in zip(sorted(df.User.unique()), ['Her', 'Me'])}
+    # df.User = df.User.map(user_labels)
     users = set(df.User)
 
+    general.install_fonts()
     # General plots
     general.plot_messages(df, colors=None, trendline=True, savefig=True, dpi=100)
     general.plot_day_spider(df, colors=None, savefig=True, dpi=100)
@@ -90,9 +88,10 @@ def main():
     topic.topics(df, model='nmf', language=args.language, save=True)
 
     # Sentiment
-    from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-    analyser = SentimentIntensityAnalyzer()
-    df['Sentiment'] = df.apply(lambda row: analyser.polarity_scores(row.Message_Clean)["compound"], 1)
+
+    df=sentiment.extract_sentiment(df, language=args.language, )
+
+    print(df[['Sentiment','Message_Clean']].head(30))
     sentiment.plot_sentiment(df, colors=['#EAAA69', '#5361A5'], savefig=True)
 
     # Wordclouds
