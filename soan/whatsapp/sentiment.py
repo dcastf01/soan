@@ -198,13 +198,21 @@ def extract_sentiment(df:pd.DataFrame,language:str)->pd.DataFrame:
 
     '''
 
-
-
     if language == 'en' or language == 'english':
-        from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+        from transformers import pipeline
 
-        analyser = SentimentIntensityAnalyzer()
-        df['Sentiment'] = df.apply(lambda row: analyser.polarity_scores(row.Message_Clean)["compound"], 1)
+        analyser =pipeline("sentiment-analysis",model='finiteautomata/bertweet-base-sentiment-analysis')
+        def calc_sentiment(row):
+            sentimiento = analyser(row.Message_Clean)
+            if len(sentimiento)>1:
+                print('error')
+            else:
+                sentimiento = sentimiento[0]
+            if sentimiento['label'] == 'NEGATIVE':
+                return -sentimiento['score']
+            else:
+                return sentimiento['score']
+
     elif language=='spanish' or language=='es' or language=='espanol' or language=='español':
 
         from transformers import pipeline
@@ -221,7 +229,7 @@ def extract_sentiment(df:pd.DataFrame,language:str)->pd.DataFrame:
                 return -sentimiento['score']
             else:
                 return sentimiento['score']
-        df['Sentiment'] = df.apply(calc_sentiment, axis=1)
+    df['Sentiment'] = df.apply(calc_sentiment, axis=1)
 
-        print(df.head)
+
     return df
