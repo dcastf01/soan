@@ -11,7 +11,17 @@ from whatsapp conversations. The main application was initially used to analyze 
 but I extended so that it can be used for your own messages. 
 
 
-This is a fork from https://github.com/MaartenGr/soan I did some modifications and I added some more steps
+This is a fork from https://github.com/MaartenGr/soan I did some modifications:
+
+Update all the libraries to the latest version
+Modify the plots to do it in plotly
+Modify the sentiment analysis to use huggingface transformers
+Remove the her/Me labels and use the name of the person in the chat
+Fix a problem with the datetime format in the preprocessing
+I add spanish language support
+
+
+
 <a name="toc"/></a>
 ## Table of Contents
 
