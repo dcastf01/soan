@@ -1,17 +1,17 @@
-import pandas   as pd
-import numpy    as np
-
-from sklearn.decomposition              import NMF, LatentDirichletAllocation
-from sklearn.feature_extraction.text    import TfidfVectorizer, CountVectorizer
 import nltk
+import numpy as np
+import pandas as pd
 from nltk.corpus import stopwords as nltk_stopwords
+from sklearn.decomposition import NMF, LatentDirichletAllocation
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+
 nltk.download('stopwords')
 
 
 def print_top_words(model, feature_names, n_top_words, file=None):
     """ Prints the top words representing the topics created
-    by "model". 
-    
+    by "model".
+
     Parameters:
     -----------
     model : sklearn model
@@ -34,23 +34,23 @@ def prepare_text_nl(row):
     * Lemmatize a word
     * Singularize a word
     * Predicative a word
-    
+
     Parameters:
     -----------
     row : pandas dataframe
         A row of a pandas dataframe
-        
+
     Returns:
     --------
     new_message : pandas dataframe
-        A row of a pandas dataframe 
-    
+        A row of a pandas dataframe
+
     """
     try:
         message = split(parse(row.Message_Only_Text.encode("utf-8").decode("utf-8")))
     except:
         print(row.Message_Only_Text)
-        
+
     new_message = ''
 
     for sentence in message:
@@ -63,7 +63,7 @@ def prepare_text_nl(row):
                 new_message += predicative(word) + ' '
             else:
                 new_message += word + ' '
-    
+
     return new_message
 
 
@@ -71,21 +71,21 @@ def topics(df, model="lda", language=False, save=False):
     """ Either executes LDA or NMF on a dutch document.
     This is a simple implementation and only used for
     "fun" purposes. It is not so much to find the very
-    best topics, but topics that are good enough. 
-    
-    
+    best topics, but topics that are good enough.
+
+
     Parameters:
     -----------
     df : pandas dataframe
         Pandas dataframe that contains the raw messages
     mode : str, default "lda"
-        Which model to use for topic modelling. 
+        Which model to use for topic modelling.
         Either "lda" or "nmf" works for now
     stopwords : str, default None
-        If you want to remove stopwords, provide a local 
+        If you want to remove stopwords, provide a local
         link to the text file (that includes a list of words)
-        including the extension. 
-    
+        including the extension.
+
     """
     if save:
         file = open(f"results/topic_{model}.txt", "a")
@@ -107,7 +107,7 @@ def topics(df, model="lda", language=False, save=False):
 
         data_samples = df[df.User == user].Message_Only_Text
         data_samples = data_samples.tolist()
-        
+
         if model == "lda":
             # Extracting Features
             tf_vectorizer = CountVectorizer(max_df=0.95, min_df=2,stop_words=stopwords)
@@ -119,17 +119,17 @@ def topics(df, model="lda", language=False, save=False):
                                             learning_offset=50.,
                                             random_state=0)
             topic_model.fit(tf)
-            feature_names = tf_vectorizer.get_feature_names()
+            feature_names = tf_vectorizer.get_feature_names_out()
         else:
             # MNF uses tfidf
             tfidf_vectorizer = TfidfVectorizer(max_df=0.95, min_df=2, stop_words=stopwords)
             tfidf = tfidf_vectorizer.fit_transform(data_samples)
-            feature_names = tfidf_vectorizer.get_feature_names()
+            feature_names = tfidf_vectorizer.get_feature_names_out()
 
             # Run NMF
-            topic_model = NMF(n_components=5, random_state=1, alpha=.1, l1_ratio=.5, 
+            topic_model = NMF(n_components=5, random_state=1, alpha_H=.1, l1_ratio=.5,
                               init='nndsvd')
             topic_model.fit(tfidf)
-        
+
         print("\nTopics in {} model:".format(model), file=file)
         print_top_words(topic_model, feature_names, 7, file=file)
