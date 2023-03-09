@@ -19,7 +19,7 @@ Modify the sentiment analysis to use huggingface transformers
 Remove the her/Me labels and use the name of the person in the chat
 Fix a problem with the datetime format in the preprocessing
 I add spanish language support
-
+Include a dockerfile to run the code in a container
 
 
 <a name="toc"/></a>
