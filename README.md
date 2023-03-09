@@ -11,6 +11,7 @@ from whatsapp conversations. The main application was initially used to analyze 
 but I extended so that it can be used for your own messages. 
 
 
+This is a fork from https://github.com/MaartenGr/soan I did some modifications and I added some more steps
 <a name="toc"/></a>
 ## Table of Contents
 
