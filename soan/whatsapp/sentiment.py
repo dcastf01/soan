@@ -1,27 +1,27 @@
 import datetime
+from operator import gt, lt
 
-import numpy    as np
+import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from matplotlib.lines import Line2D
+from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 
-import matplotlib.pyplot      as plt
-import matplotlib.dates       as mdates
-
-from operator                 import gt, lt
-from matplotlib.lines         import Line2D
-from matplotlib.offsetbox     import OffsetImage, AnnotationBbox
 
 def print_title(string, nr_tabs=0, symbol='#', head=True):
     """ Prints a title for the stats to be shown
-    
+
     Example : header=True
     ##########
     ## test ##
     ##########
-    
+
     Example : header=False
        test
     ##########
-    
-    
+
+
     Parameters:
     -----------
     string : str
@@ -32,12 +32,12 @@ def print_title(string, nr_tabs=0, symbol='#', head=True):
         The symbol to be used as an outline
     head : boolean, default True
         A header is more clearly a header
-    
+
     """
     length = len(string)
-    
+
     nr_tabs = '\t' * nr_tabs
-    
+
     if head:
         print(nr_tabs + symbol * length + symbol * 6)
         print(nr_tabs + symbol * 2 + ' ' + string + ' ' + 2 * symbol)
@@ -45,18 +45,18 @@ def print_title(string, nr_tabs=0, symbol='#', head=True):
     else:
         print(nr_tabs + 3 * ' ' + string + ' ' * 3)
         print(nr_tabs + symbol * length + symbol * 6)
-        
+
 def print_avg_sentiment(df):
     """ Prints the average sentiment per user
-    
+
     Parameters:
     -----------
     df : pandas dataframe
-        Dataframe with raw messages including a column called 
+        Dataframe with raw messages including a column called
         'Sentiment' that has a value between -1 and 1
-        
+
     """
-    
+
     # Prints the average sentiment per user
     print_title('Average Sentiment', 3)
     for user in df.User.unique():
@@ -66,20 +66,20 @@ def print_avg_sentiment(df):
 
 def print_sentiment(df):
     """ Prints 5 random positive and negative messages
-    
+
     It returns positive messages with a sentiment higher
     than 0.8 and negative messages with sentiment lower
-    than -0.3. Sentiment values are between -1 and 1. 
-    
+    than -0.3. Sentiment values are between -1 and 1.
+
     Parameters:
     -----------
     df : pandas dataframe
         Dataframe of all messages per user including
         a column called 'Sentiment' that includes values
-        ranging from -1 to 1. 
-    
+        ranging from -1 to 1.
+
     """
-    
+
     # Prints 5 random positive and negative messages
     # Many are labelled with a 1 or -1, so getting the most
     # neg or pos messages will be too much
@@ -91,12 +91,12 @@ def print_sentiment(df):
 
 
             if sentiment == 'Positive':
-                temp = df[(df['Sentiment'] > 0.8) & (df.Message_Clean.str.len() > 10) & 
+                temp = df[(df['Sentiment'] > 0.8) & (df.Message_Clean.str.len() > 10) &
                             (df.User == user)]
             else:
-                temp = df[(df['Sentiment'] < -0.3) & (df.Message_Clean.str.len() > 10) & 
+                temp = df[(df['Sentiment'] < -0.3) & (df.Message_Clean.str.len() > 10) &
                             (df.User == user)]
-                
+
             word_list = []
             for index, row in temp.iterrows():
                 word_list.append(row.Message_Clean)
@@ -107,31 +107,31 @@ def print_sentiment(df):
                 del word_list[random_value]
                 print()
         print()
-        
+
 def plot_sentiment(df, colors=None, savefig=False):
-    """ Plots the weekly average sentiment over 
+    """ Plots the weekly average sentiment over
     time per user
-    
+
     Parameters:
     -----------
     df : pandas dataframe
         Dataframe of all messages per user including
         a column called 'Sentiment' that includes values
-        ranging from -1 to 1. 
+        ranging from -1 to 1.
     colors : list, default None
         List of colors that can be used instead of the
         standard colors which are used if set to None
     savefig : boolean, default False
-        If True it will save the figure in the 
+        If True it will save the figure in the
         working directory
     """
     if not colors:
         colors = plt.rcParams['axes.prop_cycle'].by_key()['color'] * 10
-    
+
     # Resample to a week by summing
     df = df.set_index('Date')
     users = {}
-    
+
     for user in df.User.unique():
         users[user] = df[df.User == user]
         users[user] = users[user].resample('7D').mean().reset_index()
@@ -166,6 +166,12 @@ def plot_sentiment(df, colors=None, savefig=False):
 
     # Setting emojis as y-axis
     font = {'fontname':'DejaVu Sans', 'fontsize':22}
+    from matplotlib.font_manager import FontProperties, fontManager
+    try:
+        font_path = 'data/DejaVuSans.ttf'
+        fontManager.addfont(font_path)
+    except:
+        pass
     ax.set_yticks([-1, 0, 1])
     ax.set_yticklabels(['\U0001f62D','\U0001f610','\U0001f604'], **font)
 
@@ -174,7 +180,7 @@ def plot_sentiment(df, colors=None, savefig=False):
     ax.xaxis.set_major_formatter(monthyearFmt)
     plt.xticks(rotation=40)
 
-    # Create legend    
+    # Create legend
     font = {'fontname':'Comic Sans MS', 'fontsize':24}
     ax.legend(handles=legend_elements, bbox_to_anchor=(0.9, 1), loc=2, borderaxespad=0.)
     ax.set_title('Positivity of Messages', **font)
@@ -182,6 +188,40 @@ def plot_sentiment(df, colors=None, savefig=False):
     # Set size of graph
     fig.set_size_inches(13, 5)
     fig.tight_layout()
-    
+
     if savefig:
         fig.savefig('results/sentiment.png', dpi=300)
+
+def extract_sentiment(df:pd.DataFrame,language:str)->pd.DataFrame:
+    '''Extracts sentiment from a dataframe of messages
+
+
+    '''
+
+
+
+    if language == 'en' or language == 'english':
+        from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+
+        analyser = SentimentIntensityAnalyzer()
+        df['Sentiment'] = df.apply(lambda row: analyser.polarity_scores(row.Message_Clean)["compound"], 1)
+    elif language=='spanish' or language=='es' or language=='espanol' or language=='español':
+
+        from transformers import pipeline
+
+        analyser = pipeline("sentiment-analysis", model="finiteautomata/beto-sentiment-analysis")
+
+        def calc_sentiment(row):
+            sentimiento = analyser(row.Message_Clean)
+            if len(sentimiento)>1:
+                print('error')
+            else:
+                sentimiento = sentimiento[0]
+            if sentimiento['label'] == 'NEG':
+                return -sentimiento['score']
+            else:
+                return sentimiento['score']
+        df['Sentiment'] = df.apply(calc_sentiment, axis=1)
+
+        print(df.head)
+    return df
