@@ -1,0 +1,26 @@
+version: "3.9"
+services:
+
+
+  dev_prepocess:
+    # image: jupyter/pyspark-notebook
+    build:
+      context: .
+      # dockerfile: Dockerfiles
+    #octoenergy/pyspark
+    volumes:
+      - type: bind
+        source: ..
+        target: /work
+        consistency: delegated
+
+    env_file:
+      - devcontainer.env
+
+    stdin_open: true
+    tty: true
+
+
+volumes:
+  es_data:
+    driver: local

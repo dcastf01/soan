@@ -1,0 +1,50 @@
+{
+	"name": "Whatsapp analytic",
+	"dockerComposeFile": "./docker-compose.yml",
+	"service": "dev_prepocess",
+	"forwardPorts": [ 7071, 4280 ],
+	"settings": {
+		"editor.rulers": [
+			120
+		],
+		"files.trimFinalNewlines": true,
+		"files.trimTrailingWhitespace": true,
+		"files.insertFinalNewline": true,
+		"isort.args": [
+			"--py", "37", "--profile", "black"
+		],
+		"black-formatter.args": [
+			"-t", "py37", "-l", "120", "-S"
+		],
+		"[python]": {
+			"editor.defaultFormatter": "ms-python.black-formatter",
+			"editor.formatOnSave": true,
+			"editor.codeActionsOnSave": {
+				"source.organizeImports": true
+			}
+		}
+	},
+	// Configure tool-specific properties.
+
+	"extensions": [
+		"ms-python.python",
+		"ms-dotnettools.csharp",
+		"burkeholland.simple-react-snippets",
+		"dbaeumer.vscode-eslint",
+		"esbenp.prettier-vscode",
+		"GitHub.copilot"
+	],
+	"workspaceFolder": "/work"
+
+
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	// "postCreateCommand": "node --version",
+
+	// Set `remoteUser` to `root` to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+	// "remoteUser": "root",
+	// "features": {
+	// 	"ghcr.io/devcontainers/features/azure-cli:1": {},
+	// 	"ghcr.io/jlaundry/devcontainer-features/azure-functions-core-tools:1": {}
+	// }
+}
