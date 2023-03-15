@@ -7,6 +7,7 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import plotly.graph_objs as go
 from matplotlib.colors import ColorConverter, ListedColormap
 from matplotlib.lines import Line2D
 
@@ -285,50 +286,61 @@ def plot_messages(df, colors=None, trendline=False, savefig=False, dpi=100):
     for user in users:
         users[user] = users[user].resample('7D').count().reset_index()
 
-    # Create figure and plot lines
-    fig, ax = plt.subplots()
-    legend_elements = []
 
+
+    # Create traces for each user
+    traces = []
     for i, user in enumerate(users):
-        ax.plot(users[user].Date, users[user].Message_Raw, linewidth=3, color=colors[i])
-        legend_elements.append(Line2D([0], [0], color=colors[i], lw=4, label=user))
+        trace = go.Scatter(
+            x=users[user].Date,
+            y=users[user].Message_Raw,
+            mode='lines',
+            name=user,
+            line=dict(width=3, color=colors[i])
+        )
+        traces.append(trace)
 
-    # calc the trendline
+    # Create trendline trace
     if trendline:
         x = [x for x in users[user].Date.index]
         y = users[user].Message_Raw.values
         z = np.polyfit(x, y, 5)
         p = np.poly1d(z)
-        ax.plot(users[user].Date, p(x), linewidth=2, color = 'g')
+        trendline_trace = go.Scatter(
+            x=users[user].Date,
+            y=p(x),
+            mode='lines',
+            name='Trendline',
+            line=dict(width=2, color='green')
+        )
+        traces.append(trendline_trace)
 
-    # Remove axis
-    ax.spines['left'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
+    # Create layout
+    layout = go.Layout(
+        xaxis=dict(title='Date'),
+        yaxis=dict(title='Nr of Messages'),
+        # legend=dict(orientation='h', x=0.5, y=1.1),
+        # margin=dict(l=50, r=50, t=50, b=50),
+        legend=dict(
+             orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1
+        ),
+        height=600,
+        width=800,
+        title=dict(text='Weekly number of messages per user', x=0.5, y=0.95)
+    )
 
-    font = {'fontname':'Comic Sans MS', 'fontsize':14}
-    ax.set_ylabel('Nr of Messages', {'fontname':'Comic Sans MS', 'fontsize':14})
-    ax.legend(handles=legend_elements, bbox_to_anchor=(0.5, 1), loc=2, borderaxespad=0.)
-
-    # Set size of graph
-    fig.set_size_inches(20, 10)
-
-    # Creating custom legend
-    custom_lines = [Line2D([], [], color=colors[i], lw=4,
-                          markersize=6) for i in range(len(colors))]
-
-    # Create horizontal grid
-    ax.grid(True, axis='y')
-
-    # Legend and title
-    ax.legend(custom_lines, [user for user in users.keys()], bbox_to_anchor=(1.05, 1), loc=2,
-              borderaxespad=0.)
-    plt.title("Weekly number of messages per user", fontsize=20)
+    # Create figure
+    fig = go.Figure(data=traces, layout=layout)
 
     if savefig:
-        plt.savefig(f'results/moments.png', format="PNG", dpi=dpi)
+        fig.write_image("results/moments.png",)
+
     else:
-        plt.show()
+        return fig
 
 
 def get_words_love(row):

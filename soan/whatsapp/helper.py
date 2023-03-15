@@ -4,8 +4,9 @@ from collections import Counter
 import numpy as np
 import pandas as pd
 
+pd.DataFrame
 
-def import_data(file, path = ''):
+def import_data(file, path = '',file_from_streamlit=False):
     """ Import whatsapp data and transform it to a dataframe
 
     Parameters:
@@ -23,9 +24,8 @@ def import_data(file, path = ''):
         Dataframe of all messages
 
     """
+    def read_raw_text(raw_text):
 
-    with open(path + file, encoding = 'utf-8') as outfile:
-        raw_text = outfile.readlines()
         messages = {}
 
         # Getting all the messages for each user
@@ -37,7 +37,10 @@ def import_data(file, path = ''):
             # but are simply comments and therefore need to be removed
             try:
                 name = message.split(' - ')[1].split(':')[0]
-            except:
+            except Exception as e:
+                print(e)
+                print(type(e))
+
                 continue
 
             # Add name to dictionary if it exists
@@ -45,6 +48,31 @@ def import_data(file, path = ''):
                 messages[name].append(message)
             else:
                 messages[name] = [message]
+        return messages
+
+    if file_from_streamlit:
+        # Read the contents of the file and decode from bytes to a string
+        file_contents = file.read().decode("utf-8")
+
+        # Split the contents of the file into lines using readlines
+        import re
+
+        delimiter = "\n"
+        pattern = f"{delimiter}(?=\\w)"
+
+        lines = re.split(pattern, file_contents)
+        # lines = file_contents.split("\n")
+        # import io
+        # file_wrapper = io.TextIOWrapper(file.getvalue().decode('utf-8'))
+
+
+
+    else:
+        with open(path + file, encoding = 'utf-8') as outfile:
+
+            lines = outfile.readlines()
+
+    messages=read_raw_text(lines)
 
     # Convert dictionary to dataframe
     df = pd.DataFrame(columns=['Message_Raw', 'User'])
@@ -142,7 +170,7 @@ def preprocess_data(df, min_messages=10):
     # Extract Time
     df['Date'] = df.apply(lambda row: row['Message_Raw'].split(' - ')[0], axis = 1)
     if '/' in str(df.iloc[df.index[0]].Date):
-        df['Date'] = pd.to_datetime(df['Date'], format='%d/%m/%y, %H:%M',)
+        df['Date'] = pd.to_datetime(df['Date'], format='%d/%m/%y %H:%M',)
     else:
         if ',' in str(df.iloc[df.index[0]].Date):
             df['Date'] = pd.to_datetime(df['Date'], infer_datetime_format=True)

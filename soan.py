@@ -32,8 +32,7 @@ def main():
     # Load data
     df = helper.import_data(f'data/{args.file}')
     df = helper.preprocess_data(df)
-    # user_labels = {old: new for old, new in zip(sorted(df.User.unique()), ['Her', 'Me'])}
-    # df.User = df.User.map(user_labels)
+
     users = set(df.User)
 
     general.install_fonts()
@@ -97,7 +96,7 @@ def main():
     # Wordclouds
     # Counts words and create dictionary of words with counts
     counts = tf_idf.count_words_per_user(df, sentence_column="Message_Only_Text", user_column="User")
-    counts = tf_idf.remove_stopwords(counts, language="dutch", column="Word")
+    counts = tf_idf.remove_stopwords(counts, language=args.language, column="Word")
 
     for user in users:
         words = counts[["Word", user]].set_index('Word').to_dict()[user]

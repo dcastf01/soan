@@ -5,6 +5,7 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import plotly.graph_objs as go
 from matplotlib.lines import Line2D
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 
@@ -131,70 +132,147 @@ def plot_sentiment(df, colors=None, savefig=False):
     # Resample to a week by summing
     df = df.set_index('Date')
     users = {}
+    fig = go.Figure()
 
-    for user in df.User.unique():
+    users_data = []
+    for i,user in enumerate(df.User.unique()):
         users[user] = df[df.User == user]
         users[user] = users[user].resample('7D').mean().reset_index()
 
         # Fill in missing values by taking the average of previous/next
         users[user]['Sentiment']  = users[user]['Sentiment'].interpolate()
 
-    # Create figure and plot lines
-    fig, ax = plt.subplots()
 
-    legend_elements = []
+        user_data = go.Scatter(
+            x=users[user].Date,
+            y=users[user].Sentiment,
+            mode='lines',
+            line=dict(color=colors[i], width=2),
+            name=user.split(' ')[0]
+        )
+        users_data.append(user_data)
 
-    for i, user in enumerate(users):
-        ax.plot(users[user].Date, users[user].Sentiment, linewidth=2, color=colors[i])
+    # Add users' data to the figure
+    fig.add_traces(users_data)
 
-        user = user.split(' ')[0]
-        legend_elements.append(Line2D([0], [0], color=colors[i], lw=4, label=user))
+    # Remove axis lines
+    fig.update_xaxes(showline=False, zeroline=False)
+    fig.update_yaxes(showline=False, zeroline=False)
 
-    # Remove axis
-    # ax.spines['left'].set_visible(False)
-    # ax.spines['bottom'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
+    # Set the y-axis range
+    fig.update_yaxes(range=[-1, 1])
 
-    # Limit graph
-    plt.ylim(ymin=-1, ymax=1)
-    # plt.xlim(xmin=datetime.date(2016, 8, 15))
+    # Add a horizontal line
+    fig.add_shape(
+        type='line',
+        x0=0,
+        y0=-1,
+        x1=1,
+        y1=-1,
+        line=dict(color='black', width=7)
+    )
 
-    # Add lines instead of axis
-    plt.axhline(-1, color='black', xmax=1, lw=7)
-    # plt.axvline(datetime.date(2016, 8, 15), color='black', lw=7)
+    # Set the y-axis labels to emojis
+    fig.update_yaxes(
+        tickvals=[-1, 0, 1],
+        ticktext=['\U0001f62D','\U0001f610','\U0001f604'],
+        tickfont=dict(family='DejaVu Sans', size=22)
+    )
+    print(min(users[user].Date))
+    # Set the x-axis tick format
+    fig.update_xaxes(
+        tickformat='%B %Y',
+        tickangle=40,
+        range=[min(users[user].Date) - pd.Timedelta(days=1), max(users[user].Date) + pd.Timedelta(days=1)]
+    )
 
-    # Setting emojis as y-axis
-    font = {'fontname':'DejaVu Sans', 'fontsize':22}
-    from matplotlib.font_manager import FontProperties, fontManager
-    try:
-        font_path = 'data/DejaVuSans.ttf'
-        fontManager.addfont(font_path)
-    except:
-        pass
-    ax.set_yticks([-1, 0, 1])
-    ax.set_yticklabels(['\U0001f62D','\U0001f610','\U0001f604'], **font)
+    # Create a legend
+    fig.update_layout(
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1,
+            traceorder="normal",
+            font=dict(family='Comic Sans MS', size=24),
+            borderwidth=0
+        )
 
-    # Set ticks to display month and year
-    monthyearFmt = mdates.DateFormatter('%B %Y')
-    ax.xaxis.set_major_formatter(monthyearFmt)
-    plt.xticks(rotation=40)
+    )
 
-    # Create legend
-    font = {'fontname':'Comic Sans MS', 'fontsize':24}
-    ax.legend(handles=legend_elements, bbox_to_anchor=(0.9, 1), loc=2, borderaxespad=0.)
-    ax.set_title('Positivity of Messages', **font)
+    # Set the figure size
+    fig.update_layout(
+        width=1300,
+        height=500,
+        margin=dict(l=0, r=0, t=80, b=0)
+    )
 
-    # Set size of graph
-    fig.set_size_inches(13, 5)
-    fig.tight_layout()
+    # Set the title
+    fig.update_layout(
+        title={
+            'text': 'Positivity of Messages',
+            'font': dict(family='Comic Sans MS', size=24)
+        }
+    )
 
     if savefig:
-        fig.savefig('results/sentiment.png', dpi=300)
+        fig.write_image("results/sentiment.png", width=1300, height=500, scale=2)
+    # # Create figure and plot lines
+    # fig, ax = plt.subplots()
+
+    # legend_elements = []
+
+    # for i, user in enumerate(users):
+    #     ax.plot(users[user].Date, users[user].Sentiment, linewidth=2, color=colors[i])
+
+    #     user = user.split(' ')[0]
+    #     legend_elements.append(Line2D([0], [0], color=colors[i], lw=4, label=user))
+
+    # # Remove axis
+    # # ax.spines['left'].set_visible(False)
+    # # ax.spines['bottom'].set_visible(False)
+    # ax.spines['right'].set_visible(False)
+    # ax.spines['top'].set_visible(False)
+
+    # # Limit graph
+    # plt.ylim(ymin=-1, ymax=1)
+    # # plt.xlim(xmin=datetime.date(2016, 8, 15))
+
+    # # Add lines instead of axis
+    # plt.axhline(-1, color='black', xmax=1, lw=7)
+    # # plt.axvline(datetime.date(2016, 8, 15), color='black', lw=7)
+
+    # # Setting emojis as y-axis
+    # font = {'fontname':'DejaVu Sans', 'fontsize':22}
+    # from matplotlib.font_manager import FontProperties, fontManager
+    # try:
+    #     font_path = 'data/DejaVuSans.ttf'
+    #     fontManager.addfont(font_path)
+    # except:
+    #     pass
+    # ax.set_yticks([-1, 0, 1])
+    # ax.set_yticklabels(['\U0001f62D','\U0001f610','\U0001f604'], **font)
+
+    # # Set ticks to display month and year
+    # monthyearFmt = mdates.DateFormatter('%B %Y')
+    # ax.xaxis.set_major_formatter(monthyearFmt)
+    # plt.xticks(rotation=40)
+
+    # # Create legend
+    # font = {'fontname':'Comic Sans MS', 'fontsize':24}
+    # ax.legend(handles=legend_elements, bbox_to_anchor=(0.9, 1), loc=2, borderaxespad=0.)
+    # ax.set_title('Positivity of Messages', **font)
+
+    # # Set size of graph
+    # fig.set_size_inches(13, 5)
+    # fig.tight_layout()
+
+    # if savefig:
+    #     fig.savefig('results/sentiment.png', dpi=300)
 
 def extract_sentiment(df:pd.DataFrame,language:str)->pd.DataFrame:
     '''Extracts sentiment from a dataframe of messages
-
 
     '''
 
@@ -220,7 +298,10 @@ def extract_sentiment(df:pd.DataFrame,language:str)->pd.DataFrame:
         analyser = pipeline("sentiment-analysis", model="finiteautomata/beto-sentiment-analysis")
 
         def calc_sentiment(row):
-            sentimiento = analyser(row.Message_Clean)
+            try:
+                sentimiento = analyser(row.Message_Clean)
+            except:
+                return 0
             if len(sentimiento)>1:
                 print('error')
             else:
