@@ -407,11 +407,13 @@ def print_stats(df, love=False, save=False):
     else:
         file = None
 
+    stats={ u:{} for u in df.User.unique() }
     # Print number of messages
     print_title('Number of Messages', file=file)
     for user in df.User.unique():
         nr_messages = len(df[df.User == user])
         print(str(nr_messages) + '\t' + user, file=file)
+        stats[user]['nr_messages'] = nr_messages
     print(file=file)
 
     # Print number of words
@@ -420,6 +422,7 @@ def print_stats(df, love=False, save=False):
         nr_words = len([x for sublist in df[df.User==user].Message_Clean.values
                            for x in sublist.split(' ')])
         print(str(nr_words) + '\t' + user, file=file)
+        stats[user]['nr_words'] = nr_words
     print(file=file)
 
     # Calculate messages per hour per user
@@ -430,6 +433,7 @@ def print_stats(df, love=False, save=False):
         diff = end - start
         hours = diff.components[0] * 24 + diff.components[1]
         print(user + ':\t{}'.format(len(df[df.User==user])/hours), file=file)
+        stats[user]['messages_per_hour'] = len(df[df.User==user])/hours
     print(file=file)
 
     # Calculate average number of words en characters per set of messages
@@ -442,6 +446,7 @@ def print_stats(df, love=False, save=False):
         mean = (sum(df.loc[df.User == user, 'avg_length_words']) /
                 len(df.loc[df.User == user, 'avg_length_words']))
         print(user + ": " + str(round(mean, 2)), file=file)
+        stats[user]['avg_length_words'] = mean
     print(file=file)
 
     # Average length of message
@@ -450,6 +455,7 @@ def print_stats(df, love=False, save=False):
         mean = (sum(df.loc[df.User == user, 'avg_length_charac']) /
                 len(df.loc[df.User == user, 'avg_length_charac']))
         print(user + ": " + str(round(mean, 2)), file=file)
+        stats[user]['avg_length_charac'] = mean
     print(file=file)
 
     # Highscore Day
@@ -464,6 +470,11 @@ def print_stats(df, love=False, save=False):
         print("Day: \t\t{}".format(temp['User'].idxmax()), file=file)
         print(file=file)
 
+        stats[user]['highscore_day_messages'] = temp.loc[temp['User'].idxmax()].User
+        stats[user]['highscore_day'] = temp['User'].idxmax()
+
+
+
     # Count for each row if somebody said "I love you"
     if love:
         df['Love'] = df.apply(lambda row: get_words_love(row), axis=1)
@@ -472,6 +483,7 @@ def print_stats(df, love=False, save=False):
         for user in df.User.unique():
             print('{0: <30}'.format(user + ':') + str(sum(df[df.User == user].Love)), file=file)
 
+    return stats
 
 def print_timing(df, save=False):
     """ Print for each user their average response time
