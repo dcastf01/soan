@@ -170,7 +170,7 @@ def preprocess_data(df, min_messages=10):
     # Extract Time
     df['Date'] = df.apply(lambda row: row['Message_Raw'].split(' - ')[0], axis = 1)
     if '/' in str(df.iloc[df.index[0]].Date):
-        df['Date'] = pd.to_datetime(df['Date'], format='%d/%m/%y %H:%M',)
+        df['Date'] = pd.to_datetime(df['Date'].str.replace(',',''), format='%d/%m/%y %H:%M',) #here it's necesary check the format of the date, not always is the same
     else:
         if ',' in str(df.iloc[df.index[0]].Date):
             df['Date'] = pd.to_datetime(df['Date'], infer_datetime_format=True)
