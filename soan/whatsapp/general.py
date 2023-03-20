@@ -473,8 +473,6 @@ def print_stats(df, love=False, save=False):
         stats[user]['highscore_day_messages'] = temp.loc[temp['User'].idxmax()].User
         stats[user]['highscore_day'] = temp['User'].idxmax()
 
-
-
     # Count for each row if somebody said "I love you"
     if love:
         df['Love'] = df.apply(lambda row: get_words_love(row), axis=1)
