@@ -170,7 +170,19 @@ def preprocess_data(df, min_messages=10):
     # Extract Time
     df['Date'] = df.apply(lambda row: row['Message_Raw'].split(' - ')[0], axis = 1)
     if '/' in str(df.iloc[df.index[0]].Date):
-        df['Date'] = pd.to_datetime(df['Date'].str.replace(',',''), format='%d/%m/%y %H:%M',) #here it's necesary check the format of the date, not always is the same
+        #count if the year is in format with 4 or 2 digit
+        if df['Date'].str.split('/').str[2].str.len().max() == 4:
+            normal_format='%d/%m/%Y %H:%M'
+        else:
+            normal_format='%d/%m/%y %H:%M'
+        df['Date'] = pd.to_datetime(df['Date'].str.replace(',',''), format=normal_format,) #here it's necesary check the format of the date, not always is the same
+        #print all NaT
+
+        print(df.Date)
+        #drop NaT
+        print('before dropna',df.shape)
+        df.dropna(inplace=True)
+        print('after dropna',df.shape)
     else:
         if ',' in str(df.iloc[df.index[0]].Date):
             df['Date'] = pd.to_datetime(df['Date'], infer_datetime_format=True)
