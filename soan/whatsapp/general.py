@@ -390,6 +390,17 @@ def print_stats(df, love=False, save=False):
     * Highscore day per user (most active day)
     * How often user said "I love you"
 
+    the output also is a dictionary with the same information they keys are the users
+    And the values follow the next keys:
+    * nr_messages
+    * nr_words
+    * messages_per_hour
+    * avg_length_words
+    * avg_length_charac
+    * highscore_day
+    * highscore_day_messages
+
+
     Parameters:
     -----------
     df : pandas dataframe
