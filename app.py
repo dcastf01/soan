@@ -12,7 +12,9 @@ def main():
 
     # Set page title and favicon
     st.set_page_config(layout="wide", page_title="Analyzing whatsapp chats", )
-
+    st.write(
+        "Made in [![this is an image link](https://i.imgur.com/iIOA6kU.png)](https://www.streamlit.io/) by David Castellano (https://www.linkedin.com/in/davidcastellanofalcon/)"
+    )
     # Set page header and image
     st.write("## We are going to analyze your whatsapp chat")
     st.write(
@@ -40,19 +42,24 @@ def main():
         general.install_fonts()
 
         general_fig=general.plot_messages(df, colors=None, trendline=True, savefig=False, dpi=100)
+
+        #print moments
+        build_stats(df)
+
         try:
             st.plotly_chart(general_fig)
         except:
-            st.write("Sorry, I can't show you the general stats")
-        #print moments
-        build_stats(df)
+            st.write("Sorry, I have a error with your txt and I can't show you the general stats, please feel free to contact me by Linkedin and I will solve it")
 
     elif button and not uploaded_file:
         st.markdown("<h3 style='font-size: 18px;'>Please upload a file</h3>", unsafe_allow_html=True)
 
 
 
-
+    #footer
+    #write that is they want to know more about the project or feedback or contact me for any type project feel free to write me by Linkedin
+    st.write("## Contact Me ")
+    st.write('If you want to know more about the project or give me feedback or contact me for any type of project feel free to write me by [Linkedin](https://www.linkedin.com/in/davidcastellanofalcon/)')
 
 if __name__ == '__main__':
     main()
