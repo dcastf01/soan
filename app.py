@@ -20,28 +20,31 @@ def main():
     st.write(
         "Try uploading an whatsapp chat, you can export one from you mobile and import here to watch magically some insights."
     )
-    text_with_explanation="if you don't know how to download the file is > Go to WhatsApp > to the chat that you want > Settings > More > Export chat (without media)"
+    text_with_explanation="if you don't know how to download the file is > Go to WhatsApp > to the chat that you want > Settings > More > Export chat (without media) (click to see example)"
     #I want a button with the name explain with image please and if the do click in the button appear the cols with the images
-    show_explanation = st.session_state.get("show_text", False)
-
-
-    col11, col12 = st.columns((4,2))
-    with col11:
-        st.write(text_with_explanation)
-    with col12:
-        # explanation_button=st.button("Explain with images please")
-        # print(type(explanation_button))
-        if st.button("Explain with images please"):
-            show_explanation = not show_explanation
-            st.session_state["show_text"] = show_explanation
-
-
-    #write three columns using streamlit
-    if show_explanation:
+    # show_explanation = st.session_state.get("show_text", False)
+    with st.expander(text_with_explanation):
         col21,col22,col23=st.columns(3)
         col21.image("assets/example_to_download_1.jpg",)# width=250)
         col22.image("assets/example_to_download_2.jpg",)# width=250)
         col23.image("assets/example_to_download_3.jpg",)# width=250)
+    # st.image("https://static.streamlit.io/examples/dice.jpg")
+
+
+    # col11, col12 = st.columns((4,2))
+    # with col11:
+    #     st.write(text_with_explanation)
+    # with col12:
+    #     # explanation_button=st.button("Explain with images please")
+    #     # print(type(explanation_button))
+    #     if st.button("Explain with images please"):
+    #         show_explanation = not show_explanation
+    #         st.session_state["show_text"] = show_explanation
+
+
+    # #write three columns using streamlit
+    # if show_explanation:
+    #
 
 
     st.sidebar.write("## Upload and pick language :gear:")

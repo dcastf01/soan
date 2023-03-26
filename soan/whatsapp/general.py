@@ -128,11 +128,8 @@ def plot_active_days(df, savefig=False, dpi=100, user='All'):
     """
 
     # Prepare data
-    if user != 'All':
-        df = df.loc[df.User == user, :]
-        title = 'Active days of {}'.format(user)
-    else:
-        title = 'Active days of all users'
+
+    title = 'Active days of all users'
 
     day_of_week = df.apply(lambda row: row.Date.dayofweek, axis=1)
     days = day_of_week.value_counts().sort_index().index
@@ -193,10 +190,6 @@ def plot_day_spider(df, colors=None, savefig=False, dpi=100):
 
     """
 
-    # Initialize colors
-    if not colors:
-        colors = plt.rcParams['axes.prop_cycle'].by_key()['color'] * 10
-
     # Get count per day of the week
     categories = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     N = len(categories)
@@ -204,19 +197,14 @@ def plot_day_spider(df, colors=None, savefig=False, dpi=100):
     count += count[:1]
 
     # Create angles of the plot
-    angles = [n / float(N) * 2 * np.pi for n in range(N)]
-    angles += angles[:1]
+
+    angles=np.arange(0, 360, 360/N)
 
     # Initialise the spider plot
-    ax = plt.subplot(111, polar=True)
-
-    # Draw one axe per variable + add labels labels yet
-    plt.xticks(angles[:-1], [], color='grey', size=12)
-    ax.set_yticklabels([])
+    fig = go.Figure()
 
     # Plot data
     max_val = 0
-    legend_elements = []
 
     for index, user in enumerate(df.User.unique()):
         values = list(df[df.User == user].Day_of_Week.value_counts().sort_index().values)
@@ -228,32 +216,97 @@ def plot_day_spider(df, colors=None, savefig=False, dpi=100):
         # Set values between 0 and 1
         values = [(x - min(values)) / (max(values) - min(values)) + 1 for x in values]
 
-
-        ax.plot(angles, values, linewidth=2, linestyle='solid', zorder=index, color=colors[index], alpha=0.8)
-        ax.fill(angles, values, colors[index], alpha=0.1, zorder=0)
+        fig.add_trace(go.Scatterpolar(
+            r=values,
+            theta=angles,
+            fill='toself',
+            name=user
+        ))
 
         if max(values) > max_val: max_val = max(values) # To align ytick labels
 
-        legend_elements.append(Line2D([0], [0], color=colors[index], lw=4, label=user))
-
-    # Draw ytick labels to make sure they fit properly
-    for i in range(len(categories)):
-        angle_rad = i/float(len(categories))*2*np.pi
-        angle_deg = i/float(len(categories))*360
-        ha = "right"
-        if angle_rad < np.pi/2 or angle_rad > 3*np.pi/2: ha = "left"
-        plt.text(angle_rad, max_val*1.15, categories[i], size=14,
-                 horizontalalignment=ha, verticalalignment="center")
-
-    # Legend and title
-    ax.legend(handles=legend_elements, bbox_to_anchor=(1.2, 1), loc=2, borderaxespad=0.)
-    plt.title('Active days of each user', y=1.2)
+    # Set layout
+    fig.update_layout(
+        polar=dict(
+            radialaxis=dict(visible=False),
+            angularaxis=dict(
+                direction='clockwise',
+                rotation=90,
+                tickmode='array',
+                tickvals=angles,
+                ticktext=categories
+            )
+        ),
+        title='Active days of each user'
+    )
 
     # Save or show figure
     if savefig:
-        plt.savefig(f'results/spider_plot.png', dpi = dpi)
+        fig.write_image("results/spider_plot.png")
     else:
-        plt.show()
+        fig.show()
+
+    # # Initialize colors
+    # if not colors:
+    #     colors = plt.rcParams['axes.prop_cycle'].by_key()['color'] * 10
+
+    # # Get count per day of the week
+    # categories = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    # N = len(categories)
+    # count = list(df.Day_of_Week.value_counts().sort_index().values)
+    # count += count[:1]
+
+    # # Create angles of the plot
+    # angles = [n / float(N) * 2 * np.pi for n in range(N)]
+    # angles += angles[:1]
+
+    # # Initialise the spider plot
+    # ax = plt.subplot(111, polar=True)
+
+    # # Draw one axe per variable + add labels labels yet
+    # plt.xticks(angles[:-1], [], color='grey', size=12)
+    # ax.set_yticklabels([])
+
+    # # Plot data
+    # max_val = 0
+    # legend_elements = []
+
+    # for index, user in enumerate(df.User.unique()):
+    #     values = list(df[df.User == user].Day_of_Week.value_counts().sort_index().values)
+    #     values += values[:1]
+
+    #     if len(values) < 8:
+    #         continue
+
+    #     # Set values between 0 and 1
+    #     values = [(x - min(values)) / (max(values) - min(values)) + 1 for x in values]
+
+
+    #     ax.plot(angles, values, linewidth=2, linestyle='solid', zorder=index, color=colors[index], alpha=0.8)
+    #     ax.fill(angles, values, colors[index], alpha=0.1, zorder=0)
+
+    #     if max(values) > max_val: max_val = max(values) # To align ytick labels
+
+    #     legend_elements.append(Line2D([0], [0], color=colors[index], lw=4, label=user))
+
+    # # Draw ytick labels to make sure they fit properly
+    # for i in range(len(categories)):
+    #     angle_rad = i/float(len(categories))*2*np.pi
+    #     angle_deg = i/float(len(categories))*360
+    #     ha = "right"
+    #     if angle_rad < np.pi/2 or angle_rad > 3*np.pi/2: ha = "left"
+    #     plt.text(angle_rad, max_val*1.15, categories[i], size=14,
+    #              horizontalalignment=ha, verticalalignment="center")
+
+    # # Legend and title
+    # ax.legend(handles=legend_elements, bbox_to_anchor=(1.2, 1), loc=2, borderaxespad=0.)
+    # plt.title('Active days of each user', y=1.2)
+
+    # # Save or show figure
+    # if savefig:
+    #     plt.savefig(f'results/spider_plot.png', dpi = dpi)
+    # else:
+    #     plt.show()
 
 def plot_messages(df, colors=None, trendline=False, savefig=False, dpi=100):
     """ Plot the weekly count of messages per user
